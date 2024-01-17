@@ -147,4 +147,24 @@ void main() {
     expect(result, isASuccess);
     expect((result as Success<User>).value, user);
   });
+
+  test('test simple stream', () async {
+    final stream = Stream.fromIterable([
+      "Hola",
+      "Mundo",
+      "Desde Flutter",
+    ]);
+
+    expect(
+        stream,
+        emitsInOrder([
+          "Hola",
+          startsWith("Mun"),
+          emitsAnyOf([
+            "Desde Flutter",
+            "Desde Android",
+          ]),
+          emitsDone
+        ]));
+  });
 }
