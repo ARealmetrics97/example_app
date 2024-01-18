@@ -30,4 +30,27 @@ class LoginUserUC {
         return Future.value(error);
     }
   }
+
+  Stream<ResponseStream<User>> executeV2(String email, String password) async* {
+    yield LoadingStream<User>();
+    if (email.isEmpty || password.isEmpty) {
+      yield FailStream(InvalidateCredentials("Credenciales invalidas"));
+      return;
+    }
+    final response = await _authRepository.loginUser(email, password);
+    switch (response) {
+      case Success():
+        final infoAuthentication = response.value;
+        final userExists =
+            await _userRepository.verifyUserExists(infoAuthentication.userId);
+        if (!userExists) {
+          yield FailStream(AccountNotSignIn("Esta cuenta no esta registrada"));
+          return;
+        }
+        final user = await _userRepository.getUser(infoAuthentication.userId);
+        yield SuccessStream(user);
+      case Fail():
+        yield FailStream(response.error);
+    }
+  }
 }
